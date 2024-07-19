@@ -35,6 +35,11 @@ function Register() {
     navigate('/login');
   };
 
+  const handleSignInClick = (event) => {
+    event.preventDefault();
+    navigate('/login');
+  };
+
   return (
     <div className='form-container'>
       <form className="form" onSubmit={handleSubmit}>
@@ -110,7 +115,7 @@ function Register() {
         </button>
 
         <p className="signin">
-          Already have an account? <a href="#">Sign in</a>
+          Already have an account? <a href="#" onClick={handleSignInClick}>Sign in</a>
         </p>
       </form>
     </div>
@@ -118,3 +123,4 @@ function Register() {
 }
 
 export default Register;
+
