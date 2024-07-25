@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './Register.css';
 
 function Register() {
@@ -12,27 +13,34 @@ function Register() {
 
   const navigate = useNavigate();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // Check if all fields are filled
     if (!firstname || !lastname || !email || !password || !confirmPassword) {
       setError('Please fill in all fields.');
       return;
     }
 
-    // Check if passwords match
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
 
-    // Register logic here (e.g., send data to backend or handle registration)
-    
-    // Assume registration is successful and redirect to login
-    // You would replace the below line with actual registration logic
-    // and only redirect on success
-    navigate('/login');
+    try {
+      const response = await axios.post('http://localhost:3001/api/register', {
+        firstname,
+        lastname,
+        email,
+        password
+      });
+      if (response.status === 201) {
+        navigate('/login');
+      } else {
+        setError('Failed to register.');
+      }
+    } catch (error) {
+      setError('Failed to register. Please try again.');
+    }
   };
 
   const handleSignInClick = (event) => {
@@ -51,24 +59,22 @@ function Register() {
             <input
               className="input"
               type="text"
-              placeholder=""
+              placeholder="Firstname"
               value={firstname}
               onChange={(e) => setFirstname(e.target.value)}
               required
             />
-            <span>Firstname</span>
           </label>
 
           <label>
             <input
               className="input"
               type="text"
-              placeholder=""
+              placeholder="Lastname"
               value={lastname}
               onChange={(e) => setLastname(e.target.value)}
               required
             />
-            <span>Lastname</span>
           </label>
         </div>
 
@@ -76,36 +82,33 @@ function Register() {
           <input
             className="input"
             type="email"
-            placeholder=""
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <span>Email</span>
         </label>
 
         <label>
           <input
             className="input"
             type="password"
-            placeholder=""
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <span>Password</span>
         </label>
 
         <label>
           <input
             className="input"
             type="password"
-            placeholder=""
+            placeholder="Confirm password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-          <span>Confirm password</span>
         </label>
 
         {error && <p className="error">{error}</p>}
@@ -123,4 +126,3 @@ function Register() {
 }
 
 export default Register;
-

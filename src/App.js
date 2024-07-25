@@ -6,17 +6,17 @@ import Navigation from './Components/Navigation';
 import Register from './Components/Register';
 import Home from './Components/Home';
 
+
 function App() {
   return (
     <Router>
-      <Navigation/>
+      <Navigation />
       <Routes>
-        <Route path="/" element={<Home/>} />
-        <Route path="/Register" element={<Register />} />
-        <Route path="/Login" element={<Login />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/todolist" element={<TodoList />} />
-        <Route path="*" element={<Navigate  />} />
-
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );

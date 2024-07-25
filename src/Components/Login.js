@@ -1,65 +1,64 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import './Login.css'; 
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import './Login.css';
 
 function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-
-    if (!username || !password) {
-      setError('Please enter both username and password');
-      return;
+    try {
+      const response = await axios.post('http://localhost:3001/api/login', {
+        email,
+        password,
+      });
+      if (response.status === 200) {
+        navigate('/todolist');
+      } else {
+        setError('Failed to login.');
+      }
+    } catch (error) {
+      setError('Failed to login. Please try again.');
     }
-
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(username)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
-      return;
-    }
-
-    setError('');
-    // Redirect to the TodoList page
-    navigate('/todolist');
-  };
-
-  const handleForgotPassword = () => {
-    window.location.href = '/forgot-password';
   };
 
   return (
-    <div className="login-container">
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        {error && <div className="error">{error}</div>}
-        <label htmlFor="username">Username:</label>
-        <input
-          type="text"
-          id="username"
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-        />
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
-        <input type="submit" value="Login" />
+    <div className="form-container">
+      <form className="form" onSubmit={handleSubmit}>
+        <p className="title">Login</p>
+        <p className="message">Welcome back! Please login to your account.</p>
+
+        <label>
+          <input
+            className="input"
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </label>
+        <label>
+          <input
+            className="input"
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </label>
+
+        {error && <p className="error">{error}</p>}
+
+        <button type="submit" className="submit">
+          Login
+        </button>
       </form>
-      <button className="forgot-password" onClick={handleForgotPassword}>
-        Forgot Password?
-      </button>
     </div>
   );
 }

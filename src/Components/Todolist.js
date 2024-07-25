@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import  "./Todolist.css"; 
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import './Todolist.css';
 
 function TodoList() {
   const [items, setItems] = useState([]);
@@ -10,21 +11,42 @@ function TodoList() {
   const [editTask, setEditTask] = useState('');
   const [editPriority, setEditPriority] = useState('Medium');
 
-  const handleAddItem = () => {
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/todos');
+        setItems(response.data);
+      } catch (error) {
+        console.error('Failed to fetch todos', error);
+      }
+    };
+    fetchItems();
+  }, []);
+
+  const handleAddItem = async () => {
     if (!task) return;
 
-    const newItem = {
-      description: task,
-      priority: priority,
-      id: Date.now(), 
-    };
-    setItems([...items, newItem]);
-    setTask('');
-    setPriority('Medium');
+    try {
+      const newItem = {
+        description: task,
+        priority: priority,
+      };
+      const response = await axios.post('http://localhost:3001/api/todos', newItem);
+      setItems([...items, response.data]);
+      setTask('');
+      setPriority('Medium');
+    } catch (error) {
+      console.error('Failed to add todo', error);
+    }
   };
 
-  const handleDeleteItem = (id) => {
-    setItems(items.filter(item => item.id !== id));
+  const handleDeleteItem = async (id) => {
+    try {
+      await axios.delete(`http://localhost:3001/api/todos/${id}`);
+      setItems(items.filter(item => item.id !== id));
+    } catch (error) {
+      console.error('Failed to delete todo', error);
+    }
   };
 
   const handleEditItem = (index) => {
@@ -33,16 +55,23 @@ function TodoList() {
     setEditPriority(items[index].priority);
   };
 
-  const handleUpdateItem = () => {
-    const updatedItems = items.map((item, index) =>
-      index === editingIndex
-        ? { ...item, description: editTask, priority: editPriority }
-        : item
-    );
-    setItems(updatedItems);
-    setEditingIndex(null);
-    setEditTask('');
-    setEditPriority('Medium');
+  const handleUpdateItem = async () => {
+    try {
+      const updatedItem = {
+        description: editTask,
+        priority: editPriority,
+      };
+      await axios.put(`http://localhost:3001/api/todos/${items[editingIndex].id}`, updatedItem);
+      const updatedItems = items.map((item, index) =>
+        index === editingIndex ? { ...item, ...updatedItem } : item
+      );
+      setItems(updatedItems);
+      setEditingIndex(null);
+      setEditTask('');
+      setEditPriority('Medium');
+    } catch (error) {
+      console.error('Failed to update todo', error);
+    }
   };
 
   const handleSearch = (event) => {
@@ -72,45 +101,48 @@ function TodoList() {
           <option value="Medium">Medium</option>
           <option value="Low">Low</option>
         </select>
-        <button onClick={handleAddItem}>Add Item</button>
+        <button onClick={handleAddItem}>Add</button>
       </div>
 
       <input
         type="text"
-        placeholder="Search..."
         value={searchTerm}
         onChange={handleSearch}
+        placeholder="Search tasks"
       />
 
       <ul className="todo-list">
         {filteredItems.map((item, index) => (
-          <li key={item.id} className={`todo-item ${item.priority.toLowerCase()}`}>
-            <span>{item.description}</span>
-            <span className={`priority ${item.priority.toLowerCase()}`}>{item.priority}</span>
-            <button onClick={() => handleEditItem(index)}>Edit</button>
-            <button onClick={() => handleDeleteItem(item.id)}>Delete</button>
+          <li key={item.id} className="todo-item">
+            {editingIndex === index ? (
+              <div>
+                <input
+                  type="text"
+                  value={editTask}
+                  onChange={(e) => setEditTask(e.target.value)}
+                />
+                <select
+                  value={editPriority}
+                  onChange={(e) => setEditPriority(e.target.value)}
+                >
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+                <button onClick={handleUpdateItem}>Update</button>
+                <button onClick={() => setEditingIndex(null)}>Cancel</button>
+              </div>
+            ) : (
+              <div>
+                <span>{item.description}</span>
+                <span>({item.priority})</span>
+                <button onClick={() => handleEditItem(index)}>Edit</button>
+                <button onClick={() => handleDeleteItem(item.id)}>Delete</button>
+              </div>
+            )}
           </li>
         ))}
       </ul>
-
-      {editingIndex !== null && (
-        <div className="edit-item">
-          <input
-            type="text"
-            value={editTask}
-            onChange={(e) => setEditTask(e.target.value)}
-          />
-          <select
-            value={editPriority}
-            onChange={(e) => setEditPriority(e.target.value)}
-          >
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-          <button onClick={handleUpdateItem}>Update Item</button>
-        </div>
-      )}
     </div>
   );
 }
