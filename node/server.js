@@ -1,66 +1,52 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const { body, validationResult } = require('express-validator');
-const bcrypt = require('bcrypt');
-const db = require('better-sqlite3')('database.db');
- 
-
+const sqlite3 = require('sqlite3').verbose();
 const app = express();
-const port = process.env.PORT || 3000;
-const saltRounds = 12;
-
-const corsOptions = {
-  origin: 'http://localhost:3000', 
-  optionsSuccessStatus: 200
+const port = process.env.PORT || 3001;
+// Initialize SQLite database
+const initializeDatabase = () => {
+  return new sqlite3.Database('./database.db', (err) => {
+    if (err) {
+      console.error('Error connecting to database:', err.message);
+    } else {
+      console.log('Connected to the SQLite database');
+    }
+  });
 };
-
-app.use(cors(corsOptions));
-app.use(bodyParser.json());
-
-const createUserTable = () => {
-  const sql = `
-    CREATE TABLE IF NOT EXISTS user (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      firstname TEXT NOT NULL,
-      lastname TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL
-    )
-  `;
-  db.prepare(sql).run();
+// Function to register a new user
+const registerUser = (username, password) => {
+  const db = initializeDatabase();
+  db.serialize(() => {
+    db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, password TEXT NOT NULL)");
+    db.run("INSERT INTO users (username, password, email) VALUES (?, ?, ?)", [username, password], (err) => {
+      if (err) {
+        console.error('Error registering user:', err.message);
+      } else {
+        console.log('User registered successfully');
+      }
+    });
+  });
+  db.close((err) => {
+    if (err) {
+      console.error('Error closing the database connection:', err.message);
+    } else {
+      console.log('Database connection closed');
+    }
+  });
 };
-
-createUserTable();
-
-app.post('/register', [
-  body('firstname').isString().trim().escape(),
-  body('lastname').isString().trim().escape(),
-  body('email').isEmail().normalizeEmail(),
-  body('password').isLength({ min: 6 }).escape(),
-  body('confirmPassword').custom((value, { req }) => value === req.body.password)
-], (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+// Express middleware to parse JSON bodies
+app.use(express.json());
+// Express endpoint to handle user registration
+app.post('/api/register', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password are required' });
   }
-
-  const { firstname, lastname, email, password } = req.body;
-
-  try {
-    const hashedPassword = bcrypt.hashSync(password, saltRounds);
-    const sql = `
-      INSERT INTO user (firstname, lastname, email, password)
-      VALUES (?, ?, ?, ?)
-    `;
-    db.prepare(sql).run(firstname, lastname, email, hashedPassword);
-    res.status(200).json({ message: 'Registration successful' });
-  } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).json({ error: 'Error registering user' });
-  }
+  // Call registerUser function
+  registerUser(username, password);
+  // Respond with success message
+  res.status(200).json({ message: 'User registered successfully' });
 });
-
+// Start the server
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });
