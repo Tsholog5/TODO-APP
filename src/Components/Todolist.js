@@ -14,7 +14,7 @@ function TodoList() {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/api/todos');
+        const response = await axios.get('http://localhost:3001/api/tasks');
         setItems(response.data);
       } catch (error) {
         console.error('Failed to fetch todos', error);
@@ -28,21 +28,22 @@ function TodoList() {
 
     try {
       const newItem = {
-        description: task,
+        name: task, // Changed from 'description' to 'name'
         priority: priority,
       };
-      const response = await axios.post('http://localhost:3001/api/todos', newItem);
-      setItems([...items, response.data]);
-      setTask('');
-      setPriority('Medium');
+      const response = await axios.post('http://localhost:3001/api/tasks', newItem);
+      console.log('Added item response:', response.data); // Check the response
+      setItems([...items, response.data]); // Add the new item to the list
+      setTask(''); // Clear input field
+      setPriority('Medium'); // Reset priority
     } catch (error) {
-      console.error('Failed to add todo', error);
+      console.error('Failed to add task', error);
     }
   };
 
   const handleDeleteItem = async (id) => {
     try {
-      await axios.delete(`http://localhost:3001/api/todos/${id}`);
+      await axios.delete(`http://localhost:3001/api/tasks/${id}`);
       setItems(items.filter(item => item.id !== id));
     } catch (error) {
       console.error('Failed to delete todo', error);
@@ -51,17 +52,17 @@ function TodoList() {
 
   const handleEditItem = (index) => {
     setEditingIndex(index);
-    setEditTask(items[index].description);
+    setEditTask(items[index].name); // Changed from 'description' to 'name'
     setEditPriority(items[index].priority);
   };
 
   const handleUpdateItem = async () => {
     try {
       const updatedItem = {
-        description: editTask,
+        name: editTask, // Changed from 'description' to 'name'
         priority: editPriority,
       };
-      await axios.put(`http://localhost:3001/api/todos/${items[editingIndex].id}`, updatedItem);
+      await axios.put(`http://localhost:3001/api/tasks/${items[editingIndex].id}`, updatedItem);
       const updatedItems = items.map((item, index) =>
         index === editingIndex ? { ...item, ...updatedItem } : item
       );
@@ -79,7 +80,7 @@ function TodoList() {
   };
 
   const filteredItems = items.filter(item =>
-    item.description.toLowerCase().includes(searchTerm.toLowerCase())
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) // Changed 'description' to 'name'
   );
 
   return (
@@ -134,7 +135,7 @@ function TodoList() {
               </div>
             ) : (
               <div>
-                <span>{item.description}</span>
+                <span>{item.name}</span> {/* Changed from 'description' to 'name' */}
                 <span>({item.priority})</span>
                 <button onClick={() => handleEditItem(index)}>Edit</button>
                 <button onClick={() => handleDeleteItem(item.id)}>Delete</button>

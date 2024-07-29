@@ -10,18 +10,25 @@ function Login() {
   const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
+    navigate('/Todolist');
+
+    console.log(email)
     event.preventDefault();
     try {
       const response = await axios.post('http://localhost:3001/api/login', {
-        email,
-        password,
+        "username":email,
+        "password":password
       });
+
+      // Check for successful response status
       if (response.status === 200) {
-        navigate('/todolist');
+        navigate('/todolist'); // Redirect on successful login
       } else {
         setError('Failed to login.');
       }
-    } catch (error) {
+    } catch (err) {
+      // Log error for debugging
+      console.error('Login error:', err);
       setError('Failed to login. Please try again.');
     }
   };

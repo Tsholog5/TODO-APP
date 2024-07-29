@@ -1,51 +1,107 @@
+// Import necessary modules
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
+const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3001;
+
 // Initialize SQLite database
+app.use(cors());
+app.use(express.json());
+
 const initializeDatabase = () => {
-  return new sqlite3.Database('./database.db', (err) => {
+  const db = new sqlite3.Database('./database.db', (err) => {
     if (err) {
       console.error('Error connecting to database:', err.message);
     } else {
       console.log('Connected to the SQLite database');
     }
   });
-};
-// Function to register a new user
-const registerUser = (username, password) => {
-  const db = initializeDatabase();
+
+  // Create the table if it doesn't exist
   db.serialize(() => {
-    db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, password TEXT NOT NULL)");
-    db.run("INSERT INTO users (username, password, email) VALUES (?, ?, ?)", [username, password], (err) => {
+    db.run(`CREATE TABLE IF NOT EXISTS tasks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      priority TEXT NOT NULL
+    )`, (err) => {
       if (err) {
-        console.error('Error registering user:', err.message);
-      } else {
-        console.log('User registered successfully');
+        console.error('Error creating table:', err.message);
       }
     });
   });
-  db.close((err) => {
+
+  return db;
+};
+
+// Add a new task
+app.post('/api/tasks', (req, res) => {
+  const { name, priority } = req.body;
+  const db = initializeDatabase();
+
+  db.run('INSERT INTO tasks (name, priority) VALUES (?, ?)', [name, priority], function (err) {
+    db.close();
     if (err) {
-      console.error('Error closing the database connection:', err.message);
+      console.error('Error adding task:', err.message);
+      res.status(500).json({ error: 'Failed to add task' });
     } else {
-      console.log('Database connection closed');
+      res.status(201).json({ id: this.lastID, name, priority });
     }
   });
-};
-// Express middleware to parse JSON bodies
-app.use(express.json());
-// Express endpoint to handle user registration
-app.post('/api/register', (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Username and password are required' });
-  }
-  // Call registerUser function
-  registerUser(username, password);
-  // Respond with success message
-  res.status(200).json({ message: 'User registered successfully' });
 });
+
+// Get all tasks
+app.get('/api/tasks', (req, res) => {
+  const db = initializeDatabase();
+
+  db.all('SELECT * FROM tasks', [], (err, rows) => {
+    db.close();
+    if (err) {
+      console.error('Error fetching tasks:', err.message);
+      res.status(500).json({ error: 'Failed to fetch tasks' });
+    } else {
+      res.status(200).json(rows);
+    }
+  });
+});
+
+// Delete a task
+app.delete('/api/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  const db = initializeDatabase();
+
+  db.run('DELETE FROM tasks WHERE id = ?', [id], function (err) {
+    db.close();
+    if (err) {
+      console.error('Error deleting task:', err.message);
+      res.status(500).json({ error: 'Failed to delete task' });
+    } else if (this.changes === 0) {
+      res.status(404).json({ error: 'Task not found' });
+    } else {
+      res.status(200).json({ message: 'Task deleted successfully' });
+    }
+  });
+});
+
+// Update a task
+app.put('/api/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  const { name, priority } = req.body;
+  const db = initializeDatabase();
+
+  db.run('UPDATE tasks SET name = ?, priority = ? WHERE id = ?', [name, priority, id], function (err) {
+    db.close();
+    if (err) {
+      console.error('Error updating task:', err.message);
+      res.status(500).json({ error: 'Failed to update task' });
+    } else if (this.changes === 0) {
+      res.status(404).json({ error: 'Task not found' });
+    } else {
+      res.status(200).json({ id, name, priority });
+    }
+  });
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

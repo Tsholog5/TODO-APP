@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Register.css';
+import {useNavigate} from 'react-router-dom'
 
 function Register() {
   const [firstname, setFirstname] = useState('');
@@ -13,6 +13,8 @@ function Register() {
 
   const navigate = useNavigate();
 
+
+  
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -28,18 +30,13 @@ function Register() {
 
     try {
       const response = await axios.post('http://localhost:3001/api/register', {
-        firstname,
-        lastname,
-        email,
-        password
+        "username":email,
+        "password":password
       });
-      if (response.status === 201) {
-        navigate('/login');
-      } else {
-        setError('Failed to register.');
-      }
+      alert(response.data.message);
+      navigate ('/login')
     } catch (error) {
-      setError('Failed to register. Please try again.');
+      setError(error.message || 'Failed to register. Please try again.');
     }
   };
 
@@ -50,7 +47,6 @@ function Register() {
 
   return (
     <div className='form-container'>
-      <form className="form" onSubmit={handleSubmit}>
         <p className="title">Register</p>
         <p className="message">Signup now and get full access to our app.</p>
         
@@ -113,14 +109,13 @@ function Register() {
 
         {error && <p className="error">{error}</p>}
 
-        <button type="submit" className="submit">
+        <button type="submit" className="submit" onClick={handleSubmit}>
           Submit
         </button>
 
         <p className="signin">
           Already have an account? <a href="#" onClick={handleSignInClick}>Sign in</a>
         </p>
-      </form>
     </div>
   );
 }
