@@ -9,3 +9,7 @@ CREATE TABLE  login(
 -- INSERT INTO users (username, password) VALUES ('testuser', 'hashedpassword');
 INSERT INTO login (username,password)
 VALUES(faithtsholofelo@gmail.com ,1234567)
+
+ALTER TABLE users ADD COLUMN email TEXT UNIQUE;
+
+

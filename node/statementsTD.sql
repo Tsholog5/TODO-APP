@@ -20,4 +20,4 @@ WHERE name = "Do dishes";
 SELECT name FROM todo_items
 WHERE id = 1; 
 
-DROP TABLE todo_items
+DROP TABLE todo_items;

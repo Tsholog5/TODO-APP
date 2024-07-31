@@ -17,7 +17,7 @@ function TodoList() {
         const response = await axios.get('http://localhost:3001/api/tasks');
         setItems(response.data);
       } catch (error) {
-        console.error('Failed to fetch todos', error);
+        console.error('Failed to fetch tasks', error);
       }
     };
     fetchItems();
@@ -28,16 +28,15 @@ function TodoList() {
 
     try {
       const newItem = {
-        name: task, // Changed from 'description' to 'name'
-        priority: priority,
+        name: task,
+        priority: priority
       };
       const response = await axios.post('http://localhost:3001/api/tasks', newItem);
-      console.log('Added item response:', response.data); // Check the response
-      setItems([...items, response.data]); // Add the new item to the list
-      setTask(''); // Clear input field
-      setPriority('Medium'); // Reset priority
+      setItems([...items, response.data]);
+      setTask('');
+      setPriority('Medium');
     } catch (error) {
-      console.error('Failed to add task', error);
+      console.error('Failed to add task', error.response ? error.response.data : error.message);
     }
   };
 
@@ -46,21 +45,21 @@ function TodoList() {
       await axios.delete(`http://localhost:3001/api/tasks/${id}`);
       setItems(items.filter(item => item.id !== id));
     } catch (error) {
-      console.error('Failed to delete todo', error);
+      console.error('Failed to delete task', error);
     }
   };
 
   const handleEditItem = (index) => {
     setEditingIndex(index);
-    setEditTask(items[index].name); // Changed from 'description' to 'name'
+    setEditTask(items[index].name);
     setEditPriority(items[index].priority);
   };
 
   const handleUpdateItem = async () => {
     try {
       const updatedItem = {
-        name: editTask, // Changed from 'description' to 'name'
-        priority: editPriority,
+        name: editTask,
+        priority: editPriority
       };
       await axios.put(`http://localhost:3001/api/tasks/${items[editingIndex].id}`, updatedItem);
       const updatedItems = items.map((item, index) =>
@@ -71,7 +70,7 @@ function TodoList() {
       setEditTask('');
       setEditPriority('Medium');
     } catch (error) {
-      console.error('Failed to update todo', error);
+      console.error('Failed to update task', error);
     }
   };
 
@@ -80,7 +79,7 @@ function TodoList() {
   };
 
   const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) // Changed 'description' to 'name'
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -135,7 +134,7 @@ function TodoList() {
               </div>
             ) : (
               <div>
-                <span>{item.name}</span> {/* Changed from 'description' to 'name' */}
+                <span>{item.name}</span>
                 <span>({item.priority})</span>
                 <button onClick={() => handleEditItem(index)}>Edit</button>
                 <button onClick={() => handleDeleteItem(item.id)}>Delete</button>

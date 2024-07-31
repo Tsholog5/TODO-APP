@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Register.css';
-import {useNavigate} from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
 
 function Register() {
   const [firstname, setFirstname] = useState('');
@@ -13,8 +13,6 @@ function Register() {
 
   const navigate = useNavigate();
 
-
-  
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -30,13 +28,16 @@ function Register() {
 
     try {
       const response = await axios.post('http://localhost:3001/api/register', {
-        "username":email,
-        "password":password
+        username: email, // Assuming username is the email for this example
+        firstname,
+        lastname,
+        email,
+        password
       });
       alert(response.data.message);
-      navigate ('/login')
+      navigate('/login');
     } catch (error) {
-      setError(error.message || 'Failed to register. Please try again.');
+      setError(error.response ? error.response.data.message : 'Failed to register. Please try again.');
     }
   };
 
@@ -47,40 +48,17 @@ function Register() {
 
   return (
     <div className='form-container'>
-        <p className="title">Register</p>
-        <p className="message">Signup now and get full access to our app.</p>
-        
-        <div className="flex">
-          <label>
-            <input
-              className="input"
-              type="text"
-              placeholder="Firstname"
-              value={firstname}
-              onChange={(e) => setFirstname(e.target.value)}
-              required
-            />
-          </label>
-
-          <label>
-            <input
-              className="input"
-              type="text"
-              placeholder="Lastname"
-              value={lastname}
-              onChange={(e) => setLastname(e.target.value)}
-              required
-            />
-          </label>
-        </div>
-
+      <p className="title">Register</p>
+      <p className="message">Signup now and get full access to our app.</p>
+      
+      <div className="flex">
         <label>
           <input
             className="input"
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder="Firstname"
+            value={firstname}
+            onChange={(e) => setFirstname(e.target.value)}
             required
           />
         </label>
@@ -88,34 +66,57 @@ function Register() {
         <label>
           <input
             className="input"
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            type="text"
+            placeholder="Lastname"
+            value={lastname}
+            onChange={(e) => setLastname(e.target.value)}
             required
           />
         </label>
+      </div>
 
-        <label>
-          <input
-            className="input"
-            type="password"
-            placeholder="Confirm password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-        </label>
+      <label>
+        <input
+          className="input"
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </label>
 
-        {error && <p className="error">{error}</p>}
+      <label>
+        <input
+          className="input"
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+      </label>
 
-        <button type="submit" className="submit" onClick={handleSubmit}>
-          Submit
-        </button>
+      <label>
+        <input
+          className="input"
+          type="password"
+          placeholder="Confirm password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
+      </label>
 
-        <p className="signin">
-          Already have an account? <a href="#" onClick={handleSignInClick}>Sign in</a>
-        </p>
+      {error && <p className="error">{error}</p>}
+
+      <button type="submit" className="submit" onClick={handleSubmit}>
+        Submit
+      </button>
+
+      <p className="signin">
+        Already have an account? <a href="#" onClick={handleSignInClick}>Sign in</a>
+      </p>
     </div>
   );
 }
