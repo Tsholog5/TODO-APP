@@ -24,7 +24,10 @@ function TodoList() {
   }, []);
 
   const handleAddItem = async () => {
-    if (!task) return;
+    if (!task) {
+      alert('Task description is required');
+      return;
+    }
 
     try {
       const newItem = {
