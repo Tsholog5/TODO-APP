@@ -16,20 +16,8 @@ const db = new sqlite3.Database('./database.db', (err) => {
   }
 });
 
-// Function to check if a column exists
-const checkColumnExists = (db, tableName, columnName, callback) => {
-  db.all(`PRAGMA table_info(${tableName})`, (err, columns) => {
-    if (err) {
-      return callback(err);
-    }
-    const columnExists = columns.some(column => column.name === columnName);
-    callback(null, columnExists);
-  });
-};
-
 // Initialize database schema
 db.serialize(() => {
-  // Create tables if they do not exist
   db.run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
@@ -52,33 +40,7 @@ db.serialize(() => {
       console.error('Error creating tasks table:', err.message);
     }
   });
-
-  // Check for columns in the users table
-  const requiredColumns = ['username', 'firstname', 'lastname', 'email'];
-  requiredColumns.forEach(column => {
-    checkColumnExists(db, 'users', column, (err, exists) => {
-      if (err) {
-        console.error('Error checking column existence:', err.message);
-        return;
-      }
-      if (!exists) {
-        db.run(`ALTER TABLE users ADD COLUMN ${column} TEXT`, (err) => {
-          if (err) {
-            console.error(`Error adding ${column} column:`, err.message);
-          } else {
-            console.log(`${column} column added to users table`);
-          }
-        });
-      }
-    });
-  });
 });
-
-// Error handling middleware
-const errorHandler = (err, req, res, next) => {
-  console.error('Internal Server Error:', err.message);
-  res.status(500).json({ message: 'Internal Server Error' });
-};
 
 // Register a new user
 app.post('/api/register', async (req, res, next) => {
@@ -111,7 +73,7 @@ app.post('/api/register', async (req, res, next) => {
               console.error('Error registering user:', err.message);
               return next(err);
             }
-            res.status(201).json({ message: 'User registered successfully!' });
+            res.status(201).json({ message: 'User registered successfully!', userId: this.lastID });
           });
       } catch (hashError) {
         console.error('Error hashing password:', hashError.message);
@@ -122,6 +84,32 @@ app.post('/api/register', async (req, res, next) => {
     console.error('Error registering user:', error.message);
     return next(error);
   }
+});
+
+// Login endpoint to get userId
+app.post('/api/login', (req, res, next) => {
+  const { username, password } = req.body;
+
+  db.get('SELECT * FROM users WHERE email = ?', [username], (err, user) => {
+    if (err) {
+      console.error('Error finding user:', err.message);
+      return next(err);
+    }
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    bcrypt.compare(password, user.password, (err, isMatch) => {
+      if (err) {
+        console.error('Error comparing passwords:', err.message);
+        return next(err);
+      }
+      if (!isMatch) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      res.status(200).json({ userId: user.id });
+    });
+  });
 });
 
 // Add a new task
@@ -142,11 +130,11 @@ app.post('/api/tasks', (req, res, next) => {
 });
 
 // Get all tasks
-app.get('/api/tasks', (req, res, next) => {
+app.get('/api/tasks', (req, res) => {
   db.all('SELECT * FROM tasks', [], (err, rows) => {
     if (err) {
-      console.error('Error fetching tasks:', err.message);
-      return next(err);
+      console.error('Database error:', err.message);
+      return res.status(500).json({ message: 'Failed to fetch tasks from database.' });
     }
     res.status(200).json(rows);
   });
@@ -188,7 +176,10 @@ app.put('/api/tasks/:id', (req, res, next) => {
 });
 
 // Use the error handling middleware
-app.use(errorHandler);
+app.use((err, req, res, next) => {
+  console.error('Internal Server Error:', err.message);
+  res.status(500).json({ message: 'Internal Server Error' });
+});
 
 // Start the server
 app.listen(port, () => {

@@ -1,62 +1,59 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './Register.css';
 import { useNavigate } from 'react-router-dom';
+import './Register.css';
 
 function Register() {
+  const [username, setUsername] = useState('');
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-
   const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    if (!firstname || !lastname || !email || !password || !confirmPassword) {
-      setError('Please fill in all fields.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-
     try {
       const response = await axios.post('http://localhost:3001/api/register', {
-        username: email, // Assuming username is the email for this example
+        username,
         firstname,
         lastname,
         email,
         password
       });
-      alert(response.data.message);
-      navigate('/login');
-    } catch (error) {
-      setError(error.response ? error.response.data.message : 'Failed to register. Please try again.');
+
+      if (response.status === 201) {
+        navigate('/login');
+      }
+    } catch (err) {
+      console.error('Registration error:', err);
+      setError(err.response ? err.response.data.message : 'Registration failed.');
     }
   };
 
-  const handleSignInClick = (event) => {
-    event.preventDefault();
-    navigate('/login');
-  };
-
   return (
-    <div className='form-container'>
-      <p className="title">Register</p>
-      <p className="message">Signup now and get full access to our app.</p>
-      
-      <div className="flex">
+    <div className="form-container">
+      <form className="form" onSubmit={handleSubmit}>
+        <p className="title">Register</p>
+        <p className="message">Create a new account.</p>
+
         <label>
           <input
             className="input"
             type="text"
-            placeholder="Firstname"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </label>
+
+        <label>
+          <input
+            className="input"
+            type="text"
+            placeholder="First Name"
             value={firstname}
             onChange={(e) => setFirstname(e.target.value)}
             required
@@ -67,56 +64,38 @@ function Register() {
           <input
             className="input"
             type="text"
-            placeholder="Lastname"
+            placeholder="Last Name"
             value={lastname}
             onChange={(e) => setLastname(e.target.value)}
             required
           />
         </label>
-      </div>
 
-      <label>
-        <input
-          className="input"
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </label>
+        <label>
+          <input
+            className="input"
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </label>
 
-      <label>
-        <input
-          className="input"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </label>
+        <label>
+          <input
+            className="input"
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </label>
 
-      <label>
-        <input
-          className="input"
-          type="password"
-          placeholder="Confirm password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-      </label>
-
-      {error && <p className="error">{error}</p>}
-
-      <button type="submit" className="submit" onClick={handleSubmit}>
-        Submit
-      </button>
-
-      <p className="signin">
-        Already have an account? <a href="#" onClick={handleSignInClick}>Sign in</a>
-      </p>
+        <button type="submit" className="submit-button">Register</button>
+        {error && <p className="error">{error}</p>}
+      </form>
     </div>
   );
 }

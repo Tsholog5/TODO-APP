@@ -10,26 +10,23 @@ function Login() {
   const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
-    navigate('/Todolist');
-
-    console.log(email)
     event.preventDefault();
     try {
       const response = await axios.post('http://localhost:3001/api/login', {
-        "username":email,
-        "password":password
+        username: email,
+        password
       });
 
-      // Check for successful response status
       if (response.status === 200) {
-        navigate('/todolist'); // Redirect on successful login
+        const { userId } = response.data;
+        localStorage.setItem('userId', userId);
+        navigate('/todolist');
       } else {
         setError('Failed to login.');
       }
     } catch (err) {
-      // Log error for debugging
-      console.error('Login error:', err);
-      setError('Failed to login. Please try again.');
+      console.error('Login error:', err.response ? err.response.data : err.message);
+      setError(err.response ? err.response.data.message : 'Failed to login. Please try again.');
     }
   };
 
@@ -49,6 +46,7 @@ function Login() {
             required
           />
         </label>
+
         <label>
           <input
             className="input"
@@ -60,11 +58,8 @@ function Login() {
           />
         </label>
 
+        <button type="submit" className="submit-button">Login</button>
         {error && <p className="error">{error}</p>}
-
-        <button type="submit" className="submit">
-          Login
-        </button>
       </form>
     </div>
   );

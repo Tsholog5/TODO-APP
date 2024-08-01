@@ -87,4 +87,30 @@
     display: flex;
     gap: 10px;
   }
+  .ul li{
+    padding: 5px;
+    border: 5px;
+    border-radius: 6px;
+  }
   
+  .task-item {
+    background-color: #f9f9f9; /* Light background for each item */
+    border: 1px solid #ddd; /* Light border around each item */
+    border-radius: 4px; /* Rounded corners */
+    padding: 10px; /* Spacing inside each item */
+    margin-bottom: 10px; /* Space between items */
+    font-family: Arial, sans-serif; /* Font style */
+    color: #333; /* Text color */
+    transition: background-color 0.3s; /* Smooth background color transition */
+  }
+  
+  /* Optional: Hover effect for task items */
+  .task-item:hover {
+    background-color: #e0e0e0; /* Change background color on hover */
+  }
+
+  .task-list {
+    list-style-type: none; /* Removes default bullet points */
+    padding: 0; /* Removes default padding */
+    margin: 0; /* Removes default margin */
+  }
