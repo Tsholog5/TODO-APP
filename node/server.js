@@ -58,7 +58,7 @@ app.post('/api/register', async (req, res, next) => {
     db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
       if (err) {
         console.error('Error checking email:', err.message);
-        return next(err);
+        return next(err); // This will trigger the 500 error middleware
       }
       if (user) {
         return res.status(400).json({ message: 'Email already in use.' });
@@ -85,6 +85,7 @@ app.post('/api/register', async (req, res, next) => {
     return next(error);
   }
 });
+
 
 // Login endpoint to get userId
 app.post('/api/login', (req, res, next) => {
