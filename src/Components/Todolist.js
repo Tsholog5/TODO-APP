@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './Todolist.css';
 
 function TodoList() {
@@ -11,6 +12,7 @@ function TodoList() {
   const [editTask, setEditTask] = useState('');
   const [editPriority, setEditPriority] = useState('Medium');
   const [error, setError] = useState('');
+  const navigate = useNavigate(); // Initialize useNavigate
 
   useEffect(() => {
     async function fetchTasks() {
@@ -71,6 +73,12 @@ function TodoList() {
     }
   };
 
+  const handleLogout = () => {
+    // Clear authentication data
+    localStorage.removeItem('authToken'); // Example: remove token from localStorage
+    navigate('/login'); // Redirect to login page
+  };
+
   const filteredItems = items.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -78,6 +86,7 @@ function TodoList() {
   return (
     <div className="todo-container">
       <div className="form-container">
+        <button onClick={handleLogout} className="logout-button">Logout</button>
         <h1 className="title">Todo List</h1>
         <input
           type="text"
@@ -93,7 +102,7 @@ function TodoList() {
           onChange={(e) => setTask(e.target.value)}
           className="input"
         />
-        <select value={priority} onChange={(e) => setPriority(e.target.value)} className="input">
+        <select value={priority} onChange={(e) => setPriority(e.target.value)} className="select">
           <option value="Low">Low</option>
           <option value="Medium">Medium</option>
           <option value="High">High</option>
@@ -101,39 +110,60 @@ function TodoList() {
         <button onClick={handleAddTask} className="submit-button">Add Task</button>
         {error && <p className="error">{error}</p>}
       </div>
-      <ul className="task-list">
-        {filteredItems.map(item => (
-          <li key={item.id} className="task-item">
-            {editingIndex === item.id ? (
-              <div>
-                <input
-                  type="text"
-                  value={editTask}
-                  onChange={(e) => setEditTask(e.target.value)}
-                  className="input"
-                />
-                <select value={editPriority} onChange={(e) => setEditPriority(e.target.value)} className="input">
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                </select>
-                <button onClick={() => handleEditTask(item.id)} className="submit-button">Save</button>
-                <button onClick={() => setEditingIndex(null)} className="submit-button">Cancel</button>
-              </div>
-            ) : (
-              <div>
-                <span>{item.name} - {item.priority}</span>
-                <button onClick={() => handleDeleteTask(item.id)} className="submit-button">Delete</button>
-                <button onClick={() => {
-                  setEditingIndex(item.id);
-                  setEditTask(item.name);
-                  setEditPriority(item.priority);
-                }} className="submit-button">Edit</button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>       
+
+      <div className="table-container">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Task Name</th>
+              <th>Priority</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredItems.map(item => (
+              <tr key={item.id}>
+                {editingIndex === item.id ? (
+                  <>
+                    <td>
+                      <input
+                        type="text"
+                        value={editTask}
+                        onChange={(e) => setEditTask(e.target.value)}
+                        className="input"
+                      />
+                    </td>
+                    <td>
+                      <select value={editPriority} onChange={(e) => setEditPriority(e.target.value)} className="select">
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                      </select>
+                    </td>
+                    <td className="actions">
+                      <button onClick={() => handleEditTask(item.id)} className="edit-button">Save</button>
+                      <button onClick={() => setEditingIndex(null)} className="delete-button">Cancel</button>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="task-name">{item.name}</td>
+                    <td className="task-priority">{item.priority}</td>
+                    <td className="actions">
+                      <button onClick={() => handleDeleteTask(item.id)} className="delete-button">Delete</button>
+                      <button onClick={() => {
+                        setEditingIndex(item.id);
+                        setEditTask(item.name);
+                        setEditPriority(item.priority);
+                      }} className="edit-button">Edit</button>
+                    </td>
+                  </>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

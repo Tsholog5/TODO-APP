@@ -6,7 +6,6 @@ import Navigation from './Components/Navigation';
 import Register from './Components/Register';
 import Home from './Components/Home';
 
-
 function App() {
   return (
     <Router>
