@@ -11,11 +11,10 @@
   width: 100%;
   max-width: 500px;
   background-color: #fff;
-  padding: 20px;
+  padding: 0px;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-  position: relative; /* Add this to position the logout button */
+  margin-bottom: 40px;
+  position: relative; 
 }
 
 .logout-button {
@@ -137,3 +136,15 @@
   background-color: #dc3545;
   color: white;
 }
+.profile-button{
+  position: absolute;
+  padding: 8px 12px;
+  right: 80px;
+  top: 10px;
+  background-color: green;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;}

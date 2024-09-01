@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 import './Register.css';
 
 function Register() {
-  const [username, setUsername] = useState('');
-  const [firstname, setFirstname] = useState('');
-  const [lastname, setLastname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -16,19 +13,18 @@ function Register() {
     event.preventDefault();
     try {
       const response = await axios.post('http://localhost:3001/api/register', {
-        username,
-        firstname,
-        lastname,
-        email,
+        username: email,
         password
       });
 
-      if (response.status === 201) {
+      if (response.status === 200) {
         navigate('/login');
+      } else {
+        setError('Failed to register.');
       }
     } catch (err) {
-      console.error('Registration error:', err);
-      setError(err.response ? err.response.data.message : 'Registration failed.');
+      console.error('Register error:', err.response ? err.response.data : err.message);
+      setError(err.response ? err.response.data.message : 'Failed to register. Please try again.');
     }
   };
 
@@ -36,40 +32,7 @@ function Register() {
     <div className="form-container">
       <form className="form" onSubmit={handleSubmit}>
         <p className="title">Register</p>
-        <p className="message">Create a new account.</p>
-
-        <label>
-          <input
-            className="input"
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </label>
-
-        <label>
-          <input
-            className="input"
-            type="text"
-            placeholder="First Name"
-            value={firstname}
-            onChange={(e) => setFirstname(e.target.value)}
-            required
-          />
-        </label>
-
-        <label>
-          <input
-            className="input"
-            type="text"
-            placeholder="Last Name"
-            value={lastname}
-            onChange={(e) => setLastname(e.target.value)}
-            required
-          />
-        </label>
+        <p className="message">Create your account to get started.</p>
 
         <label>
           <input
@@ -95,6 +58,10 @@ function Register() {
 
         <button type="submit" className="submit-button">Register</button>
         {error && <p className="error">{error}</p>}
+
+        <p className="login-link">
+          If you already have an account, <Link to="/login">login here</Link>.
+        </p>
       </form>
     </div>
   );

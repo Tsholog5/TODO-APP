@@ -12,7 +12,9 @@ function TodoList() {
   const [editTask, setEditTask] = useState('');
   const [editPriority, setEditPriority] = useState('Medium');
   const [error, setError] = useState('');
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [showProfile, setShowProfile] = useState(false); // State to control profile visibility
+  const [profileData, setProfileData] = useState({ name: '', email: '', phone: '' }); // State to hold profile data
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchTasks() {
@@ -74,9 +76,38 @@ function TodoList() {
   };
 
   const handleLogout = () => {
-    // Clear authentication data
-    localStorage.removeItem('authToken'); // Example: remove token from localStorage
-    navigate('/login'); // Redirect to login page
+    localStorage.removeItem('authToken');
+    navigate('/login');
+  };
+
+  const handleProfileClick = async () => {
+    setShowProfile(!showProfile); // Toggle profile visibility
+
+    if (!profileData.name && !profileData.email && !profileData.phone) {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.get('http://localhost:3001/api/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setProfileData(response.data);
+      } catch (err) {
+        console.error('Error fetching profile data:', err);
+        setError('Failed to load profile information.');
+      }
+    }
+  };
+
+  const handleProfileUpdate = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      await axios.put('http://localhost:3001/api/profile', profileData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setShowProfile(false); // Hide form after updating profile
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setError('Failed to update profile.');
+    }
   };
 
   const filteredItems = items.filter(item =>
@@ -86,6 +117,7 @@ function TodoList() {
   return (
     <div className="todo-container">
       <div className="form-container">
+        <button onClick={handleProfileClick} className="profile-button">Profile</button>
         <button onClick={handleLogout} className="logout-button">Logout</button>
         <h1 className="title">Todo List</h1>
         <input
@@ -110,6 +142,34 @@ function TodoList() {
         <button onClick={handleAddTask} className="submit-button">Add Task</button>
         {error && <p className="error">{error}</p>}
       </div>
+
+      {showProfile && (
+        <div className="profile-container">
+          <h2>Edit Profile</h2>
+          <input
+            type="text"
+            placeholder="Name"
+            value={profileData.name}
+            onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+            className="input"
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={profileData.email}
+            onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+            className="input"
+          />
+          <input
+            type="tel"
+            placeholder="Phone"
+            value={profileData.phone}
+            onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+            className="input"
+          />
+          <button onClick={handleProfileUpdate} className="submit-button">Update Profile</button>
+        </div>
+      )}
 
       <div className="table-container">
         <table className="table">

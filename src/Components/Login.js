@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import './Login.css';
 
-function Login() {
+function Login({ setIsAuthenticated }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,9 +18,9 @@ function Login() {
       });
 
       if (response.status === 200) {
-        const { userId } = response.data;
-        localStorage.setItem('userId', userId);
-        navigate('/todolist');
+        setIsAuthenticated(true); // Mark user as authenticated
+        localStorage.setItem('authToken', response.data.token); // Save token if using JWT
+        navigate('/todolist'); // Redirect to the TodoList page
       } else {
         setError('Failed to login.');
       }
@@ -60,6 +60,10 @@ function Login() {
 
         <button type="submit" className="submit-button">Login</button>
         {error && <p className="error">{error}</p>}
+
+        <p className="register-link">
+          If you don't have an account, <Link to="/register">register here</Link>.
+        </p>
       </form>
     </div>
   );
