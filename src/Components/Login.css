@@ -15,8 +15,12 @@
 .login-container form {
   display: flex;
   flex-direction: column;
-}
 
+}
+.form{
+  height: 600px;
+  width: 1200px;
+}
 .login-container label {
   margin-bottom: 5px;
 }
@@ -36,6 +40,7 @@
   background-color: #007BFF;
   color: white;
   cursor: pointer;
+  height: 1000px;
 }
 
 .login-container input[type="submit"]:hover {
